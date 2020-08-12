@@ -23,5 +23,11 @@ def upit_loss_2speakers(y_hat, y):
     loss_two = temp[0, 1] + temp[1, 0]
     maximum_loss = loss_one if loss_one > loss_two else loss_two
 
-    return maximum_loss
+    return -maximum_loss
     
+def si_snr(y_hat, y):
+    loss = 0
+    for prediction in y_hat:
+        loss += si_snr_2speaker(prediction.squeeze(0), y)
+    
+    return loss
