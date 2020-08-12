@@ -70,8 +70,8 @@ class FacebookModel(nn.Module):
         chunks = self.chunk(encoded)
         outps = list()
         for block in self.rnnblocks:
-            res = block(chunks)
-            res = self.d(self.activation(res))
+            chunks = block(chunks)
+            res = self.d(self.activation(chunks))
             outps.append(res)
         
         outps = self.apply_overlap_and_add(outps)
