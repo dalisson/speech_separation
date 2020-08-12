@@ -8,7 +8,7 @@ class BaseRNNBlock(nn.Module):
     O bloco impar passa a RNN ao longo da dimensão do tempo, ou seja,
     ao longo de R chunks de tamanho K
     '''
-    
+
     def __init__(self, Parameter=128, hidden_size=128, **kwargs):
         super(BaseRNNBlock, self).__init__()
         self.lstm1 = LSTM(input_size=Parameter, hidden_size=hidden_size, batch_first=True, bidirectional=True, **kwargs)
