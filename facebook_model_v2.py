@@ -36,15 +36,15 @@ class RNNBlock(nn.Module):
     def forward(self, x):
         outp = self.oddBlock(x)
         #skip connection
-        x += outp
+        outp += x
         #Tensor NxRxK -> NxKxR
-        x = torch.transpose(x, 1,-1)
-        outp = self.evenBlock(x)
-        #skip connection
-        x += outp
+        outp1 = torch.transpose(outp, 1,-1)
+        outp1 = self.evenBlock(outp1)
         #Tensor NxKxR -> NxRxK
-        x = torch.transpose(x, 1,-1)
-        return x
+        outp1 = torch.transpose(outp1, 1,-1)
+        #skip connection
+        outp1 += outp
+        return outp1
 
 class FacebookModel(nn.Module):
     '''
@@ -61,7 +61,8 @@ class FacebookModel(nn.Module):
         self.d = nn.Conv1d(r, c*r, kernel_size=1)
         self.activation = torch.nn.PReLU(num_parameters=1, init=0.25)
         self.decoder = nn.ConvTranspose1d(n, 1, kernel_size=l, stride=int(l/2))
-
+        
+        self.device= 'cpu'
         #teste de decode com uma convolucao 2d
         self.decoder2d = nn.ConvTranspose2d(n, 1, kernel_size=(1, l), stride=(1, int(l/2)))
     
@@ -70,17 +71,16 @@ class FacebookModel(nn.Module):
         chunks = self.chunk(encoded)
         outps = list()
         for block in self.rnnblocks:
-            chunks = block(chunks)
+            chunks = block(chunks.clone())
             res = self.d(self.activation(chunks))
             outps.append(res)
-        
         outps = self.apply_overlap_and_add(outps)
         return self.decode2d(outps)
 
     
     def chunk(self, x):
-        x = torch.cat((x, torch.zeros((64, 110))), dim=-1)
-        x = torch.cat((torch.zeros((64, 89)), x), dim=-1)
+        x = torch.cat((x, torch.zeros((64, 110)).to(self.device)), dim=-1)
+        x = torch.cat((torch.zeros((64, 89)).to(self.device), x), dim=-1)
         
         return x.unfold(-1, 178, 89)
         
@@ -128,3 +128,10 @@ class FacebookModel(nn.Module):
         x = torch.transpose(x, -2, -1)
         result = torch.nn.functional.fold(x, (self.c, 16198) ,kernel_size=(1,178), stride=(1,89))
         return result.squeeze(1)
+    
+    def to(self, device):
+        model = super(FacebookModel,self).to(device)
+        model.device = device
+        return model
+        
+    
