@@ -1,6 +1,6 @@
 import torch
 
-def upit_loss_2speakers(y_hat, y):
+def upit_loss(y_hat, y):
     '''
     the si_snr loss computed for two speakers
     y_hat: tensor shaped like (2, T)
@@ -35,14 +35,16 @@ def upit_loss_2speakers(y_hat, y):
 
     loss = 10*(torch.log10(si_til_mod) - torch.log10(e_til_mod))
     
-    loss_one = loss[0][0] + loss[1][1]
-    loss_two = loss[1][0] + loss[0][1]
+    n_speakers = loss.shape[0]
+    
+    indexes = torch.tensor(list(range(n_speakers)) +list(range(n_speakers))).unfold(0, n_speakers, 1)[:-1]
+    
+    return torch.gather(loss, 0, indexes).sum(-1).max()
 
-    return -max(loss_one, loss_two)
     
 def si_snr(y_hat, y):
     loss = 0
     for prediction in y_hat:
-        loss += upit_loss_2speaker(prediction.squeeze(0), y)
+        loss += upit_loss(prediction.squeeze(0), y)
     
     return loss
