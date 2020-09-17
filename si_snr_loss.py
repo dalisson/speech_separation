@@ -8,7 +8,7 @@ def upit_loss(y_hat, y):
     where T = utterance duration
     '''
     si_til_numerator = (y@y_hat.t()).t()[..., None] * y
-    si_til_denominator = (y * y).sum(-1).sqrt().unsqueeze(-1)
+    si_til_denominator = (y * y).sum(-1).unsqueeze(-1)
     si_til = si_til_numerator/ si_til_denominator
     
     #y[0]@y_hat[0]/mod(y_0)
@@ -27,11 +27,11 @@ def upit_loss(y_hat, y):
     #[[y_hat[0] - y[0]@y_hat[0]/mod(y_0), y_hat[1] - y[0]@y_hat[1]/mod(y_0)]
     # y_hat[0] - y[1]@y_hat[0]/mod(y_1), y_hat[1] - y[1]@y_hat[1]/mod(y_1)]
     
-    e_til_mod = (e_til * e_til).sum(-1).sqrt()
+    e_til_mod = (e_til * e_til).sum(-1)
     
     #[[y[0]@y_hat[0]/mod(y_0), y[0]@y_hat[1]/mod(y_0)]
     # y[1]@y_hat[0]/mod(y_1),  y[1]@y_hat[1]/mod(y_1)]
-    si_til_mod = (si_til * si_til).sum(-1).sqrt()
+    si_til_mod = (si_til * si_til).sum(-1)
 
     loss = 10*(torch.log10(si_til_mod) - torch.log10(e_til_mod))
     
