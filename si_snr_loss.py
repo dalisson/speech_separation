@@ -44,6 +44,8 @@ def upit_loss(y_hat, y):
     
 def si_snr(y_hat, y):
     loss = 0
+    counter = 0
     for prediction in y_hat:
         loss -= upit_loss(prediction.squeeze(0), y)
-    return loss
+        counter += 1
+    return loss/counter
