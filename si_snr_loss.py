@@ -39,7 +39,7 @@ def upit_loss(y_hat, y):
     
     indexes = torch.tensor(list(range(n_speakers)) +list(range(n_speakers))).unfold(0, n_speakers, 1)[:-1]
     
-    return torch.gather(loss, 0, indexes).sum(-1).max()/n_speakers
+    return torch.gather(loss, 0, indexes).mean(-1).max()
 
     
 def si_snr(y_hat, y):
