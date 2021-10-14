@@ -2,14 +2,27 @@ import torch
 
 def upit_loss(y_hat, y):
     '''
-    the si_snr loss computed for two speakers
-    y_hat: tensor shaped like (2, T)
-    y: tensor shape like (2, T)
+    the si_snr loss computed for number of speakers
+    y_hat: tensor shaped like (N, T)
+    y: tensor shape like (N, T)
     where T = utterance duration
+          N = number of speakers
     '''
-    si_til_numerator = (y@y_hat.t()).t()[..., None] * y
-    si_til_denominator = (y * y).sum(-1).unsqueeze(-1)
+
+    #compute the mean 
+    y_mean = torch.mean(y, dim=-1).t()[...,None]
+    y_hat_mean = torch.mean(y_hat, dim=-1).t()[...,None]
+
+    #set y and y_hat to zero mean
+    y_zero_mean = y - y_mean
+    y_hat_zero_mean = y_hat - y_hat_mean
+
+
+    si_til_numerator = (y_zero_mean@y_hat_zero_mean.t()).t()[..., None] * y
+    si_til_denominator = (y_zero_mean * y_zero_mean).sum(-1).unsqueeze(-1)
     si_til = si_til_numerator/ si_til_denominator
+
+
     
     #y[0]@y_hat[0]/mod(y_0)
     #y[0]@y_hat[1]/mod(y_0)
@@ -22,7 +35,7 @@ def upit_loss(y_hat, y):
     # y_hat[0] - y[1]@y_hat[0]/mod(y_1)
     # y_hat[1] - y[1]@y_hat[1]/mod(y_1)
     
-    e_til = y_hat - si_til
+    e_til = y_hat_zero_mean - si_til
     
     #[[y_hat[0] - y[0]@y_hat[0]/mod(y_0), y_hat[1] - y[0]@y_hat[1]/mod(y_0)]
     # y_hat[0] - y[1]@y_hat[0]/mod(y_1), y_hat[1] - y[1]@y_hat[1]/mod(y_1)]
