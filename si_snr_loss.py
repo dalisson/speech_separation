@@ -32,7 +32,7 @@ def upit_loss(y_hat, y):
     #[[y[0]@y_hat[0]/mod(y_0), y[0]@y_hat[1]/mod(y_0)]
     # y[1]@y_hat[0]/mod(y_1),  y[1]@y_hat[1]/mod(y_1)]
     si_til_mod = (si_til * si_til).sum(-1)
-    n_speakers = loss.shape[0]
+    n_speakers = y.shape[0]
     loss = 10*(torch.log10(si_til_mod) - torch.log10(e_til_mod))
     
    
